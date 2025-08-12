@@ -8,7 +8,6 @@
     android:theme="@style/SettingsTheme">
 
     <include layout="@layout/guidelines_settings" />
-
     <com.willowtree.vocable.customviews.VocableImageButton
         android:id="@+id/settings_close_button"
         style="@style/CloseButton"
@@ -19,6 +18,14 @@
         android:src="@drawable/close_action_button_icon"
         app:layout_constraintStart_toStartOf="@id/guideline_start"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/compose"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="@dimen/settings_close_button_top_margin"
+        app:layout_constraintStart_toStartOf="@id/guideline_start"
+        app:layout_constraintTop_toTopOf="parent"/>
 
     <TextView
         android:id="@+id/settings_title"

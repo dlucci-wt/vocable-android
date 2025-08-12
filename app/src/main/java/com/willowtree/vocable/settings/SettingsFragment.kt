@@ -7,15 +7,27 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.GridLayout
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.view.children
 import androidx.core.view.isVisible
 import androidx.core.view.updateMargins
-import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.willowtree.vocable.BaseFragment
 import com.willowtree.vocable.BindingInflater
 import com.willowtree.vocable.BuildConfig
 import com.willowtree.vocable.R
+import com.willowtree.vocable.composables.VocableImageButton
+import com.willowtree.vocable.composables.VocableTextView
 import com.willowtree.vocable.databinding.FragmentSettingsBinding
 
 class SettingsFragment : BaseFragment<FragmentSettingsBinding>() {
@@ -51,6 +63,36 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>() {
             }
         }
 
+        binding.compose?.apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+
+                Column {
+                    Row {
+                        VocableImageButton(
+                            height = context.resources.getDimension(R.dimen.settings_close_button_height)
+                                .toInt().dp,
+                            width = context.resources.getDimension(R.dimen.settings_close_button_width)
+                                .toInt().dp,
+                            backgroundColor = Color(R.drawable.button_default_background),
+                            painter = painterResource(R.drawable.ic_close),
+                            onClick = { findNavController().popBackStack() },
+                            modifier = Modifier.weight(1f)
+                        )
+                        VocableTextView(
+                            text = context.resources.getString(R.string.settings),
+                            fontSize = context.resources.getDimension(R.dimen.settings_title_text_size).sp,
+                            fontWeight = FontWeight.Bold,
+                            textColor = colorResource(R.color.textColor),
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier.weight(2f)
+                        )
+                    }
+
+                }
+            }
+        }
+
         return binding.root
     }
 
@@ -76,10 +118,6 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>() {
                 }
                 startActivity(sendEmail)
             }
-        }
-
-        binding.settingsCloseButton.action = {
-            findNavController().popBackStack()
         }
 
         binding.settingsOptionsContainer.timingSensitivityButton.action = {
@@ -129,7 +167,7 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>() {
 
     private fun setSettingsButtonsEnabled(enable: Boolean) {
         binding.apply {
-            settingsCloseButton.isEnabled = enable
+            settingsCloseButton?.isEnabled = enable
             privacyPolicyButton.isEnabled = enable
             contactDevsButton.isEnabled = enable
             settingsOptionsContainer.editCategoriesButton.isEnabled = enable
