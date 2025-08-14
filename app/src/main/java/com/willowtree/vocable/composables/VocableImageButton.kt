@@ -30,7 +30,8 @@ fun VocableImageButton(
     backgroundColor : Color = MaterialTheme.colorScheme.primary,
     contentDescription : String = "",
     painter : Painter = painterResource(R.drawable.ic_close),
-    shape: Shape = RectangleShape
+    shape: Shape = RectangleShape,
+    tint : Color = Color.White
 ) {
 
     val isPreview = LocalInspectionMode.current
@@ -46,7 +47,9 @@ fun VocableImageButton(
             Icon(
                 painter = painter,
                 contentDescription = contentDescription,
-                modifier = iconModifier
+                modifier = iconModifier,
+                tint = tint
+
             )
         else
             Icon(

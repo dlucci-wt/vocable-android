@@ -1,31 +1,40 @@
 package com.willowtree.vocable.settings
 
 import android.content.Intent
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.GridLayout
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.view.children
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.isVisible
-import androidx.core.view.updateMargins
 import androidx.navigation.fragment.findNavController
 import com.willowtree.vocable.BaseFragment
 import com.willowtree.vocable.BindingInflater
 import com.willowtree.vocable.BuildConfig
 import com.willowtree.vocable.R
+import com.willowtree.vocable.composables.VocableButtonWithEndImage
 import com.willowtree.vocable.composables.VocableImageButton
 import com.willowtree.vocable.composables.VocableTextView
 import com.willowtree.vocable.databinding.FragmentSettingsBinding
@@ -39,7 +48,8 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>() {
         private const val SETTINGS_OPTION_COUNT = 5
     }
 
-    override val bindingInflater: BindingInflater<FragmentSettingsBinding> = FragmentSettingsBinding::inflate
+    override val bindingInflater: BindingInflater<FragmentSettingsBinding> =
+        FragmentSettingsBinding::inflate
     private var numColumns = 1
 
     override fun onCreateView(
@@ -50,44 +60,116 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>() {
         super.onCreateView(inflater, container, savedInstanceState)
         numColumns = resources.getInteger(R.integer.settings_options_columns)
 
-        (binding.settingsOptionsContainer.root as GridLayout).children.forEachIndexed { index, child ->
-            if (index % numColumns == numColumns - 1) {
-                child.layoutParams = (child.layoutParams as GridLayout.LayoutParams).apply {
-                    marginEnd = 0
-                }
-            }
-            if (index > SETTINGS_OPTION_COUNT - numColumns) {
-                child.layoutParams = (child.layoutParams as GridLayout.LayoutParams).apply {
-                    updateMargins(bottom = 0)
-                }
-            }
-        }
+//        (binding.settingsOptionsContainer.root as GridLayout).children.forEachIndexed { index, child ->
+//            if (index % numColumns == numColumns - 1) {
+//                child.layoutParams = (child.layoutParams as GridLayout.LayoutParams).apply {
+//                    marginEnd = 0
+//                }
+//            }
+//            if (index > SETTINGS_OPTION_COUNT - numColumns) {
+//                child.layoutParams = (child.layoutParams as GridLayout.LayoutParams).apply {
+//                    updateMargins(bottom = 0)
+//                }
+//            }
+//        }
 
         binding.compose?.apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
 
-                Column {
-                    Row {
+                val context = LocalContext.current
+                val exitDrawable = ContextCompat.getDrawable(
+                    context,
+                    R.drawable.close_action_button_icon
+                ) as Drawable
+                val endDrawable =
+                    ContextCompat.getDrawable(context, R.drawable.arrow_right_32dp) as Drawable
+                val fontSize = with(LocalDensity.current) {
+                    context.resources.getDimension(R.dimen.settings_title_text_size).toSp()
+                }
+
+
+                Column(
+                    modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 48.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         VocableImageButton(
-                            height = context.resources.getDimension(R.dimen.settings_close_button_height)
-                                .toInt().dp,
-                            width = context.resources.getDimension(R.dimen.settings_close_button_width)
-                                .toInt().dp,
+                            height = 24.dp,
+                            width = 24.dp,
                             backgroundColor = Color(R.drawable.button_default_background),
-                            painter = painterResource(R.drawable.ic_close),
+                            painter = BitmapPainter(exitDrawable.toBitmap().asImageBitmap()),
                             onClick = { findNavController().popBackStack() },
-                            modifier = Modifier.weight(1f)
                         )
                         VocableTextView(
                             text = context.resources.getString(R.string.settings),
-                            fontSize = context.resources.getDimension(R.dimen.settings_title_text_size).sp,
+                            fontSize = fontSize,
                             fontWeight = FontWeight.Bold,
                             textColor = colorResource(R.color.textColor),
-                            textAlign = TextAlign.Start,
-                            modifier = Modifier.weight(2f)
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .weight(2f)
                         )
                     }
+
+                    VocableButtonWithEndImage(
+                        onClick = {
+                            if (findNavController().currentDestination?.id == R.id.settingsFragment) {
+                                findNavController().navigate(R.id.action_settingsFragment_to_editCategoriesFragment)
+                            }
+                        },
+                        icon = BitmapPainter(endDrawable.toBitmap().asImageBitmap()),
+                        text = context.resources.getString(R.string.edit_categories_title),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 24.dp),
+                        buttonColor = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(8.dp),
+                        textColor = colorResource(R.color.textColor),
+                        textSize = 24.sp,
+                        fontWeight = FontWeight.Normal,
+                        textAlign = TextAlign.Start
+                    )
+
+                    VocableButtonWithEndImage(
+                        onClick = {
+                            if (findNavController().currentDestination?.id == R.id.settingsFragment) {
+                                findNavController().navigate(R.id.action_settingsFragment_to_sensitivityFragment)
+                            }
+                        },
+                        icon = BitmapPainter(endDrawable.toBitmap().asImageBitmap()),
+                        text = context.resources.getString(R.string.timing_sensitivity_title),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 24.dp),
+                        buttonColor = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(8.dp),
+                        textColor = colorResource(R.color.textColor),
+                        textSize = 24.sp,
+                        fontWeight = FontWeight.Normal,
+                        textAlign = TextAlign.Start
+                    )
+
+                    VocableButtonWithEndImage(
+                        onClick = {
+                            if (findNavController().currentDestination?.id == R.id.settingsFragment) {
+                                findNavController().navigate(R.id.action_settingsFragment_to_selectionModeFragment)
+                            }
+                        },
+                        icon = BitmapPainter(endDrawable.toBitmap().asImageBitmap()),
+                        text = context.resources.getString(R.string.settings_selection_mode),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 24.dp),
+                        buttonColor = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(8.dp),
+                        textColor = colorResource(R.color.textColor),
+                        textSize = 24.sp,
+                        fontWeight = FontWeight.Normal,
+                        textAlign = TextAlign.Start
+                    )
 
                 }
             }
@@ -96,9 +178,7 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>() {
         return binding.root
     }
 
-    override fun getAllViews(): List<View> {
-        return emptyList()
-    }
+    override fun getAllViews(): List<View> = emptyList()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -120,23 +200,19 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>() {
             }
         }
 
-        binding.settingsOptionsContainer.timingSensitivityButton.action = {
-            if (findNavController().currentDestination?.id == R.id.settingsFragment) {
-                findNavController().navigate(R.id.action_settingsFragment_to_sensitivityFragment)
-            }
-        }
+//        binding.settingsOptionsContainer.timingSensitivityButton.action = {
+//
+//        }
 
-        binding.settingsOptionsContainer.selectionModeButton.action = {
-            if (findNavController().currentDestination?.id == R.id.settingsFragment) {
-                findNavController().navigate(R.id.action_settingsFragment_to_selectionModeFragment)
-            }
-        }
+//        binding.settingsOptionsContainer.selectionModeButton.action = {
+//            if (findNavController().currentDestination?.id == R.id.settingsFragment) {
+//                findNavController().navigate(R.id.action_settingsFragment_to_selectionModeFragment)
+//            }
+//        }
 
-        binding.settingsOptionsContainer.editCategoriesButton.action = {
-            if (findNavController().currentDestination?.id == R.id.settingsFragment) {
-                findNavController().navigate(R.id.action_settingsFragment_to_editCategoriesFragment)
-            }
-        }
+//        binding.settingsOptionsContainer.editCategoriesButton.action = {
+//
+//        }
     }
 
 
@@ -170,10 +246,10 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>() {
             settingsCloseButton?.isEnabled = enable
             privacyPolicyButton.isEnabled = enable
             contactDevsButton.isEnabled = enable
-            settingsOptionsContainer.editCategoriesButton.isEnabled = enable
-            settingsOptionsContainer.resetAppButton.isEnabled = enable
-            settingsOptionsContainer.selectionModeButton.isEnabled = enable
-            settingsOptionsContainer.timingSensitivityButton.isEnabled = enable
+//            settingsOptionsContainer.editCategoriesButton.isEnabled = enable
+            //settingsOptionsContainer.resetAppButton.isEnabled = enable
+            //settingsOptionsContainer.selectionModeButton.isEnabled = enable
+            //settingsOptionsContainer.timingSensitivityButton.isEnabled = enable
         }
     }
 
