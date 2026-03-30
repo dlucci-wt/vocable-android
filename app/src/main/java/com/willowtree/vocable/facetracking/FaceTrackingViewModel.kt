@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.lifecycle.*
 import com.google.ar.core.AugmentedFace
-import com.google.ar.sceneform.math.Vector3
+import io.github.sceneview.collision.Vector3
 import com.willowtree.vocable.R
 import com.willowtree.vocable.utils.IFaceTrackingPermissions
 import com.willowtree.vocable.utils.VocableSharedPreferences
@@ -117,7 +117,7 @@ class FaceTrackingViewModel(
                         if (!isTablet) {
                             y *= 2F
                         }
-                        val adjustedVector = Vector3.lerp(oldVector, Vector3(x, y, z), sensitivity)
+                        val adjustedVector = Vector3.lerp(oldVector!!, Vector3(x, y, z), sensitivity)
                         liveAdjustedVector.postValue(adjustedVector)
                         oldVector = adjustedVector
                     }

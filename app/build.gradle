@@ -2,7 +2,6 @@ plugins {
     id 'vocable.application'
     id 'kotlin-kapt'
     id 'kotlin-parcelize'
-    id "androidx.navigation.safeargs.kotlin"
     id 'com.google.gms.google-services'
     id 'com.google.firebase.crashlytics'
 }
@@ -42,53 +41,53 @@ android {
             buildConfigField("boolean", "USE_HEAD_TRACKING", useHeadTracking)
         }
     }
-    viewBinding {
-        enabled = true
-    }
     sourceSets {
         androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
     }
     useLibrary 'android.test.runner'
 
     buildFeatures {
-        viewBinding = true
         buildConfig = true
+        compose = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = libs.versions.composeCompiler.get()
     }
 }
 
 dependencies {
+    implementation platform(libs.androidx.compose.bom)
+    implementation libs.androidx.compose.ui
+    implementation libs.androidx.compose.ui.graphics
+    implementation libs.androidx.compose.ui.tooling.preview
+    implementation libs.androidx.compose.material3
+    implementation 'androidx.compose.runtime:runtime-livedata'
+    implementation libs.androidx.activity.compose
+    implementation libs.androidx.lifecycle.runtime.compose
+    implementation libs.androidx.navigation.compose
+    implementation libs.koin.androidx.compose
+    debugImplementation libs.androidx.compose.ui.tooling
+
     implementation 'androidx.appcompat:appcompat:1.4.1'
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.5.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
     implementation 'androidx.activity:activity-ktx:1.6.0'
-    implementation 'androidx.fragment:fragment-ktx:1.4.1'
-    // Provides ARCore Session and related resources.
-    implementation 'com.google.ar:core:1.30.0'
-    implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.17.1'
+    // SceneView AR (https://github.com/sceneview/sceneview-android). 2.2.x aligns with compileSdk 34 / Kotlin 1.9; 2.3.3 pulls Kotlin 2.2 + SDK 36.
+    implementation 'io.github.sceneview:sceneview:2.2.0'
+    implementation 'io.github.sceneview:arsceneview:2.2.0'
 
     def coroutines_version = "1.7.3"
 
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
-    implementation 'androidx.viewpager2:viewpager2:1.0.0'
-
-    implementation 'io.github.inflationx:calligraphy3:3.1.1'
-    implementation 'io.github.inflationx:viewpump:2.0.3'
-
-    implementation 'android.arch.lifecycle:extensions:1.1.1'
-    implementation 'android.arch.lifecycle:viewmodel:1.1.1'
-
     implementation(libs.koin.android)
 
-    implementation "androidx.room:room-runtime:2.5.2"
-    kapt "androidx.room:room-compiler:2.5.2"
-    implementation "androidx.room:room-ktx:2.5.2"
+    def room_version = "2.6.1"
+    implementation "androidx.room:room-runtime:$room_version"
+    kapt "androidx.room:room-compiler:$room_version"
+    implementation "androidx.room:room-ktx:$room_version"
 
     implementation 'androidx.security:security-crypto:1.0.0-beta01'
-
-    implementation "androidx.navigation:navigation-fragment-ktx:2.4.1"
-    implementation "androidx.navigation:navigation-ui-ktx:2.4.1"
 
     implementation 'com.jakewharton.timber:timber:5.0.1'
     implementation 'com.google.firebase:firebase-analytics:20.1.2'
@@ -102,7 +101,7 @@ dependencies {
     testImplementation "androidx.arch.core:core-testing:2.2.0"
     testImplementation(libs.turbine)
     testImplementation(project(":basetest"))
-    androidTestImplementation "androidx.room:room-testing:2.2.5"
+    androidTestImplementation "androidx.room:room-testing:$room_version"
     androidTestImplementation 'androidx.test:runner:1.4.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
     androidTestImplementation 'androidx.test.espresso:espresso-intents:3.4.0'
@@ -114,7 +113,4 @@ dependencies {
     androidTestImplementation "androidx.arch.core:core-testing:2.2.0"
     androidTestImplementation(libs.turbine)
     androidTestImplementation(project(":basetest"))
-
-    // Testing Navigation
-    androidTestImplementation "androidx.navigation:navigation-testing:2.3.1"
 }

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Programmatic MainActivity hierarchy (no activity_main.xml). -->
+    <item name="parent_layout" type="id" />
+    <item name="main_nav_compose" type="id" />
+    <item name="pointer_view" type="id" />
+    <item name="error_banner" type="id" />
+</resources>

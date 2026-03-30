@@ -3,6 +3,8 @@ package com.willowtree.vocable
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.willowtree.vocable.facetracking.FaceTrackingViewModel
+import com.willowtree.vocable.headpointer.HeadPointerCoordinator
+import com.willowtree.vocable.presets.Category
 import com.willowtree.vocable.presets.ILegacyCategoriesAndPhrasesRepository
 import com.willowtree.vocable.presets.LegacyCategoriesAndPhrasesRepository
 import com.willowtree.vocable.presets.PresetCategoriesRepository
@@ -15,8 +17,10 @@ import com.willowtree.vocable.room.RoomStoredPhrasesRepository
 import com.willowtree.vocable.room.StoredCategoriesRepository
 import com.willowtree.vocable.room.StoredPhrasesRepository
 import com.willowtree.vocable.room.VocableDatabase
+import com.willowtree.vocable.settings.AddPhraseViewModel
 import com.willowtree.vocable.settings.AddUpdateCategoryViewModel
 import com.willowtree.vocable.settings.EditCategoriesViewModel
+import com.willowtree.vocable.settings.EditPhrasesViewModel
 import com.willowtree.vocable.settings.EditCategoryMenuViewModel
 import com.willowtree.vocable.settings.EditCategoryPhrasesViewModel
 import com.willowtree.vocable.settings.customcategories.CustomCategoryPhraseViewModel
@@ -60,6 +64,7 @@ val vocableKoinModule = module {
     }
 
     scope<MainActivity> {
+        scoped { HeadPointerCoordinator() }
         scoped {
             FaceTrackingManager(get(), get())
         }
@@ -104,7 +109,9 @@ val vocableKoinModule = module {
     single<VocableEnvironment> { VocableEnvironmentImpl() }
     viewModel { PresetsViewModel(get(), get(), get(named<PresetsViewModel>()), get()) }
     viewModel { EditCategoriesViewModel(get()) }
-    viewModel { EditCategoryPhrasesViewModel(get(), get(), get()) }
+    viewModel { (category: Category) -> EditCategoryPhrasesViewModel(category, get(), get()) }
+    viewModel { AddPhraseViewModel() }
+    viewModel { EditPhrasesViewModel() }
     viewModel { AddUpdateCategoryViewModel(get(), get(), get()) }
     viewModel { EditCategoryMenuViewModel(get()) }
     viewModel { CustomCategoryPhraseViewModel(get()) }

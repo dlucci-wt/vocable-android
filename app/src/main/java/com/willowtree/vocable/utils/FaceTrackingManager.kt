@@ -5,13 +5,10 @@ import android.content.Context
 import android.hardware.display.DisplayManager
 import android.util.DisplayMetrics
 import android.view.Surface
-import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.ar.core.ArCoreApk
 import com.willowtree.vocable.BuildConfig
-import com.willowtree.vocable.R
-import com.willowtree.vocable.facetracking.FaceTrackFragment
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -33,6 +30,12 @@ class FaceTrackingManager(
     }
 
     val displayMetrics = DisplayMetrics()
+
+    /**
+     * Invoked when the AR scene view should be recreated (e.g. on 180° device rotation).
+     * Set this before calling [initialize].
+     */
+    var onArResetNeeded: (() -> Unit)? = null
 
     private lateinit var faceTrackingPointerUpdates: FaceTrackingPointerUpdates
 
@@ -74,26 +77,8 @@ class FaceTrackingManager(
     private var hasSetupAr: Boolean = false
     private fun setupArTracking() {
         if (!hasSetupAr) {
-
             hasSetupAr = true
-
             listenToOrientationChanges()
-
-            if (activity.supportFragmentManager.findFragmentById(R.id.face_fragment) == null) {
-                activity.supportFragmentManager
-                    .beginTransaction()
-                    .replace(R.id.face_fragment, FaceTrackFragment())
-                    .commitAllowingStateLoss()
-            } else {
-                activity.window
-                    .decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    .or(View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
-                    .or(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
-                    .or(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION)
-                    .or(View.SYSTEM_UI_FLAG_FULLSCREEN)
-                    .or(View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
-            }
-
         }
     }
 
@@ -102,11 +87,9 @@ class FaceTrackingManager(
     }
 
     /**
-     * Returns false and displays an error message if Sceneform can not run, true if Sceneform can run
-     * on this device.
+     * Returns false and displays an error message if AR head tracking cannot run on this device.
      *
-     *
-     * Sceneform requires Android N on the device as well as OpenGL 3.0 capabilities.
+     * Requires ARCore and OpenGL ES 3.0+.
      *
      *
      * Disables Permissions if the device is not supported.
@@ -122,15 +105,15 @@ class FaceTrackingManager(
                 .deviceConfigurationInfo
                 .glEsVersion
         if (java.lang.Double.parseDouble(openGlVersionString) < minOpenGlVersion) {
-            Timber.e("TAG", "Sceneform requires OpenGL ES 3.0 later")
-            Toast.makeText(activity, "Sceneform requires OpenGL ES 3.0 or later", Toast.LENGTH_LONG).show()
+            Timber.e("TAG", "Head tracking requires OpenGL ES 3.0 or later")
+            Toast.makeText(activity, "Head tracking requires OpenGL ES 3.0 or later", Toast.LENGTH_LONG).show()
             return false
         }
         return true
     }
 
     /**
-     * Resets the FaceTrackFragment if the device is rotated to ensure proper AR orientation relative to the users head.
+     * Listens for device rotation and resets the AR view on 180° rotations.
      */
     private fun listenToOrientationChanges() {
         val windowManager = activity.windowManager
@@ -140,29 +123,29 @@ class FaceTrackingManager(
 
             override fun onDisplayChanged(displayId: Int) {
                 val newOrientation = windowManager.defaultDisplay.rotation
-                // Only reset FaceTrackFragment if device is rotated 180 degrees
+                // Only reset the AR view if device is rotated 180 degrees
                 when (orientation) {
                     Surface.ROTATION_0 -> {
                         if (newOrientation == Surface.ROTATION_180) {
-                            resetFaceTrackFragment("${Surface.ROTATION_180}")
+                            resetArView()
                         }
                     }
 
                     Surface.ROTATION_90 -> {
                         if (newOrientation == Surface.ROTATION_270) {
-                            resetFaceTrackFragment("${Surface.ROTATION_270}")
+                            resetArView()
                         }
                     }
 
                     Surface.ROTATION_180 -> {
                         if (newOrientation == Surface.ROTATION_0) {
-                            resetFaceTrackFragment("${Surface.ROTATION_0}")
+                            resetArView()
                         }
                     }
 
                     Surface.ROTATION_270 -> {
                         if (newOrientation == Surface.ROTATION_90) {
-                            resetFaceTrackFragment("${Surface.ROTATION_90}")
+                            resetArView()
                         }
                     }
                 }
@@ -179,17 +162,10 @@ class FaceTrackingManager(
 
     /**
      * If the device rotates 180 degrees (portrait to portrait/landscape to landscape), the
-     * activity won't be destroyed and recreated. This means that the FaceTrackFragment will not
-     * reset its camera positioning. The only way to reset it currently is to create a new
-     * instance of the fragment and add it to the activity.
-     * @param tag The tag to use for the FaceTrackFragment, should be unique to the orientation
+     * activity won't be destroyed and recreated. The AR scene view must be recreated to reset
+     * its camera positioning. [onArResetNeeded] is invoked to signal the UI to recreate it.
      */
-    private fun resetFaceTrackFragment(tag: String) {
-        if (!activity.supportFragmentManager.isDestroyed && activity.supportFragmentManager.findFragmentByTag(tag) == null) {
-            activity.supportFragmentManager
-                .beginTransaction()
-                .replace(R.id.face_fragment, FaceTrackFragment(), tag)
-                .commitAllowingStateLoss()
-        }
+    private fun resetArView() {
+        onArResetNeeded?.invoke()
     }
 }
